@@ -34,6 +34,8 @@ export default function Teams() {
   const { data: teams, isLoading, error } = useQuery({
     queryKey: ['teams'],
     queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('teams')
         .select('*')
@@ -85,6 +87,7 @@ export default function Teams() {
       });
     },
     onError: (error: any) => {
+      console.error('Create team error:', error);
       toast({
         title: "Error creating team",
         description: error.message || "There was an error creating the team.",
@@ -116,6 +119,7 @@ export default function Teams() {
       });
     },
     onError: (error: any) => {
+      console.error('Update team error:', error);
       toast({
         title: "Error updating team",
         description: error.message || "There was an error updating the team.",
@@ -127,6 +131,15 @@ export default function Teams() {
   // Delete team mutation
   const deleteTeamMutation = useMutation({
     mutationFn: async (id: string) => {
+      // First delete team_members
+      const { error: membersError } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', id);
+      
+      if (membersError) throw membersError;
+      
+      // Then delete the team
       const { error } = await supabase
         .from('teams')
         .delete()
@@ -144,6 +157,7 @@ export default function Teams() {
       });
     },
     onError: (error: any) => {
+      console.error('Delete team error:', error);
       toast({
         title: "Error deleting team",
         description: error.message || "There was an error deleting the team.",
@@ -241,7 +255,7 @@ export default function Teams() {
               <div className="flex flex-col items-center">
                 <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
                 <h3 className="text-lg font-medium">Error loading teams</h3>
-                <p className="text-muted-foreground">Please try again later.</p>
+                <p className="text-muted-foreground">{(error as Error).message || "Please try again later."}</p>
               </div>
             </div>
           ) : teams && teams.length > 0 ? (
