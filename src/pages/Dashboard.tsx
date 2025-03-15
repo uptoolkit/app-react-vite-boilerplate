@@ -1,9 +1,10 @@
 
 import { motion } from 'framer-motion';
-import { Users, BarChart3, ArrowUp, ArrowDown, DollarSign, CreditCard } from 'lucide-react';
+import { Users, BarChart3, ArrowUp, ArrowDown, DollarSign, CreditCard, FolderPlus } from 'lucide-react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { CreateProjectDialog } from '@/components/projects/CreateProjectDialog';
 
 export default function Dashboard() {
   return (
@@ -29,10 +30,12 @@ export default function Dashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Button>
-              <DollarSign className="mr-2 h-4 w-4" />
-              New Transaction
-            </Button>
+            <CreateProjectDialog>
+              <Button>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            </CreateProjectDialog>
           </motion.div>
         </div>
         
