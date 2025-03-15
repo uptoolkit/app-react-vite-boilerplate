@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AnimatedLogo } from './AnimatedLogo';
+import { AnimatedLogo } from '@/components/AnimatedLogo';
 
 type SidebarItem = {
   icon: React.ElementType;

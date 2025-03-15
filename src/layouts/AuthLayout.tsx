@@ -1,7 +1,6 @@
-
 import { motion } from 'framer-motion';
-import { AnimatedLogo } from './AnimatedLogo';
-import { NavLink } from './NavLink';
+import { AnimatedLogo } from '@/components/AnimatedLogo';
+import { NavLink } from '@/components/NavLink';
 
 type AuthLayoutProps = {
   children: React.ReactNode;
