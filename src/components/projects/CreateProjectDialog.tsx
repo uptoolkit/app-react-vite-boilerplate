@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -41,6 +42,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateProjectDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const form = useForm<FormValues>({
@@ -58,6 +60,8 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
     }
 
     setIsSubmitting(true);
+    setError(null);
+    
     try {
       // Get the first team from the database
       // In a real app, you'd want to let the user select a team
@@ -70,15 +74,15 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
         console.error("Error fetching teams:", teamsError);
         
         if (teamsError.message.includes("infinite recursion detected")) {
-          toast.error("Database permission error. Please try again later or contact support.");
+          setError("Database permission error. Our team has been notified. Please try again later or contact support.");
         } else {
-          toast.error(`Error fetching teams: ${teamsError.message}`);
+          setError(`Error fetching teams: ${teamsError.message}`);
         }
         return;
       }
 
       if (!teams || teams.length === 0) {
-        toast.error("No teams found. Please create a team first.");
+        setError("No teams found. Please create a team first.");
         return;
       }
 
@@ -97,9 +101,9 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
         console.error("Error creating project:", error);
         
         if (error.message.includes("infinite recursion detected")) {
-          toast.error("Database permission error. Please try again later or contact support.");
+          setError("Database permission error. Our team has been notified. Please try again later or contact support.");
         } else {
-          toast.error(`Error creating project: ${error.message}`);
+          setError(`Error creating project: ${error.message}`);
         }
         return;
       }
@@ -109,10 +113,15 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
       setOpen(false);
     } catch (error) {
       console.error("Error creating project:", error);
-      toast.error("Failed to create project. Please try again.");
+      setError("Failed to create project. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    setError(null);
+    setOpen(false);
   };
 
   return (
@@ -125,6 +134,15 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
             Enter the details for your new project. Click create when you're done.
           </DialogDescription>
         </DialogHeader>
+        
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -158,7 +176,7 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
               )}
             />
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)} type="button">
+              <Button variant="outline" onClick={handleClose} type="button">
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
