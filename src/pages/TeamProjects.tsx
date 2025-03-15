@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Laptop, Pencil, Trash2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
