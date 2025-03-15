@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Dialog,
@@ -40,6 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateProjectDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -50,6 +52,11 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
   });
 
   const onSubmit = async (values: FormValues) => {
+    if (!user) {
+      toast.error("You must be logged in to create a project");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Get the first team from the database
@@ -59,7 +66,17 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
         .select('id')
         .limit(1);
 
-      if (teamsError) throw teamsError;
+      if (teamsError) {
+        console.error("Error fetching teams:", teamsError);
+        
+        if (teamsError.message.includes("infinite recursion detected")) {
+          toast.error("Database permission error. Please try again later or contact support.");
+        } else {
+          toast.error(`Error fetching teams: ${teamsError.message}`);
+        }
+        return;
+      }
+
       if (!teams || teams.length === 0) {
         toast.error("No teams found. Please create a team first.");
         return;
@@ -76,7 +93,16 @@ export function CreateProjectDialog({ children }: { children: React.ReactNode })
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating project:", error);
+        
+        if (error.message.includes("infinite recursion detected")) {
+          toast.error("Database permission error. Please try again later or contact support.");
+        } else {
+          toast.error(`Error creating project: ${error.message}`);
+        }
+        return;
+      }
 
       toast.success("Project created successfully!");
       form.reset();
