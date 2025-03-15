@@ -1,16 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-
-// This is a mock implementation until Supabase is connected
-type User = {
-  id: string;
-  email: string;
-  name?: string;
-};
+import { User, Session } from '@supabase/supabase-js';
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
@@ -22,31 +18,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock functions for now - would be replaced with Supabase auth
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    // Check for session on mount
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      setIsLoading(false);
+    };
+    
+    checkSession();
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful login
-      setUser({
-        id: '1',
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        name: 'User'
+        password,
       });
+      
+      if (error) throw error;
       
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
       throw error;
@@ -58,25 +75,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signup = async (email: string, password: string, name?: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful signup
-      setUser({
-        id: '1',
+      const { error } = await supabase.auth.signUp({
         email,
-        name: name || 'User'
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
       });
+      
+      if (error) throw error;
       
       toast({
         title: "Account created",
-        description: "Welcome to the platform!",
+        description: "Welcome to Drimt!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
       toast({
         title: "Signup failed",
-        description: "There was an error creating your account.",
+        description: error.message || "There was an error creating your account.",
         variant: "destructive",
       });
       throw error;
@@ -88,21 +107,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const { error } = await supabase.auth.signOut();
       
-      // Clear user
-      setUser(null);
+      if (error) throw error;
       
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         variant: "destructive",
         title: "Logout failed",
+        description: error.message || "An error occurred during logout.",
       });
       throw error;
     } finally {
@@ -113,19 +131,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = async (email: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
       
       toast({
         title: "Password reset email sent",
         description: "Check your inbox for instructions.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Reset password error:', error);
       toast({
         variant: "destructive",
         title: "Failed to send reset email",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
       });
       throw error;
     } finally {
@@ -133,30 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check if user is logged in on initial load
-  useEffect(() => {
-    // This would check for an existing session with Supabase
-    // For now, just simulate a loading state
-    const checkAuthState = async () => {
-      setIsLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // For demo purposes, start logged out
-        setUser(null);
-      } catch (error) {
-        console.error('Auth state check error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuthState();
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, session, isLoading, login, signup, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
