@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 import { Users, BarChart3, ArrowUp, ArrowDown, DollarSign, CreditCard } from 'lucide-react';
-import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

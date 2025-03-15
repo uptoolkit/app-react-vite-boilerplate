@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { TeamsList } from '@/features/teams/components/TeamsList';
 import { CreateTeamDialog } from '@/features/teams/components/CreateTeamDialog';
