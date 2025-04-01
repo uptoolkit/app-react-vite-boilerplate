@@ -1,8 +1,8 @@
-# Welcome to your Lovable project
+# Lovable App React Vite Boilerplate
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/3b553da1-2696-41ed-a400-45a59e193a81
+**Demo**: https://lovable.dev/projects/3b553da1-2696-41ed-a400-45a59e193a81
 
 ## How can I edit this code?
 
